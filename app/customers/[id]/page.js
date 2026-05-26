@@ -84,15 +84,16 @@ export default function CustomerDetail({ params }) {
           <div className="flex justify-center mb-6">
             <QRCodeCanvas value={customer?.qr_code || ''} size={200} level="H" />
           </div>
-          <div className="bg-gray-50 rounded-lg p-3 mb-4 break-all">
-            <p className="text-xs text-gray-500 font-mono">{customer?.qr_code}</p>
-          </div>
-          <button
-            onClick={copyCode}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition"
-          >
-            {copied ? '✓ Copié !' : 'Copier le code QR'}
-          </button>
+         <div className="mb-4">
+  <p className="text-xs text-gray-400 mb-2">Code QR — sélectionnez et copiez :</p>
+  <input
+    type="text"
+    readOnly
+    value={customer?.qr_code || ''}
+    onFocus={(e) => e.target.select()}
+    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-600 cursor-pointer"
+  />
+</div>
         </div>
       </div>
     </div>
