@@ -7,6 +7,7 @@ import { QRCodeCanvas } from 'qrcode.react'
 export default function CustomerDetail({ params }) {
   const [customer, setCustomer] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -21,6 +22,18 @@ export default function CustomerDetail({ params }) {
     }
     getData()
   }, [params.id])
+
+  const copyCode = () => {
+    if (!customer?.qr_code) return
+    const el = document.createElement('textarea')
+    el.value = customer.qr_code
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -49,7 +62,7 @@ export default function CustomerDetail({ params }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4">
             <div className="bg-gray-50 rounded-lg p-3 text-center">
               <p className="text-2xl font-semibold text-purple-600">{customer?.loyalty_points}</p>
               <p className="text-xs text-gray-400 mt-1">Points</p>
@@ -69,25 +82,16 @@ export default function CustomerDetail({ params }) {
           <h3 className="font-medium mb-2">QR Code client</h3>
           <p className="text-sm text-gray-400 mb-6">Scannez ce code pour ajouter des points</p>
           <div className="flex justify-center mb-6">
-            <QRCodeCanvas
-              value={customer?.qr_code || ''}
-              size={200}
-              level="H"
-            />
+            <QRCodeCanvas value={customer?.qr_code || ''} size={200} level="H" />
+          </div>
+          <div className="bg-gray-50 rounded-lg p-3 mb-4 break-all">
+            <p className="text-xs text-gray-500 font-mono">{customer?.qr_code}</p>
           </div>
           <button
-  onClick={() => {
-    const el = document.createElement('textarea')
-    el.value = customer?.qr_code
-    document.body.appendChild(el)
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-    alert('Code copié !')
-  }}
-  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition"
->
-  Copier le code QR
+            onClick={copyCode}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition"
+          >
+            {copied ? '✓ Copié !' : 'Copier le code QR'}
           </button>
         </div>
       </div>
