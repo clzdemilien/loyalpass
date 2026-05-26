@@ -76,13 +76,18 @@ export default function CustomerDetail({ params }) {
             />
           </div>
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(customer?.qr_code)
-              alert('Code copié !')
-            }}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition"
-          >
-            Copier le code QR
+  onClick={() => {
+    const el = document.createElement('textarea')
+    el.value = customer?.qr_code
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    alert('Code copié !')
+  }}
+  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition"
+>
+  Copier le code QR
           </button>
         </div>
       </div>
