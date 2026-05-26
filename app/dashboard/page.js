@@ -44,10 +44,7 @@ export default function Dashboard() {
         </h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500">{business?.name}</span>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-800 transition"
-          >
+          <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-800 transition">
             Déconnexion
           </button>
         </div>
@@ -79,7 +76,11 @@ export default function Dashboard() {
             { label: 'Mes clients', desc: 'Gérez votre liste de clients fidèles', icon: '👥', href: '/customers' },
             { label: 'Ma carte fidélité', desc: 'Personnalisez votre carte', icon: '🎴', href: '/cards' },
           ].map((item) => (
-            <div key={item.label} className="bg-white rounded-xl border border-gray-200 p-5 cursor-pointer hover:border-purple-300 transition">
+            <div
+              key={item.label}
+              onClick={() => router.push(item.href)}
+              className="bg-white rounded-xl border border-gray-200 p-5 cursor-pointer hover:border-purple-300 transition"
+            >
               <div className="text-2xl mb-3">{item.icon}</div>
               <h3 className="font-medium mb-1">{item.label}</h3>
               <p className="text-sm text-gray-500">{item.desc}</p>
