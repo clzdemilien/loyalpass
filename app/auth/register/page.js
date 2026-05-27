@@ -16,100 +16,73 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-
-    if (signUpError) {
-      setError(signUpError.message)
-      setLoading(false)
-      return
-    }
-
-    const { error: bizError } = await supabase
-      .from('businesses')
-      .insert({
-        user_id: data.user.id,
-        name: businessName,
-      })
-
-    if (bizError) {
-      setError(bizError.message)
-      setLoading(false)
-      return
-    }
-
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    if (signUpError) { setError(signUpError.message); setLoading(false); return }
+    const { error: bizError } = await supabase.from('businesses').insert({ user_id: data.user.id, name: businessName })
+    if (bizError) { setError(bizError.message); setLoading(false); return }
     router.push('/dashboard')
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl border border-gray-200 p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold mb-1">
-            Loyal<span className="text-purple-600">Pass</span>
-          </h1>
-          <p className="text-gray-500 text-sm">Créez votre espace commerçant</p>
+    <div style={{ minHeight: '100vh', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', -apple-system, sans-serif", padding: '1rem', position: 'relative' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .input-field { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 16px; color: #F0F0F5; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+        .input-field:focus { border-color: rgba(139, 92, 246, 0.6); background: rgba(139, 92, 246, 0.04); }
+        .input-field::placeholder { color: #4B5563; }
+        .btn-submit { width: 100%; background: linear-gradient(135deg, #8B5CF6, #6D28D9); border: none; border-radius: 12px; padding: 13px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s, transform 0.2s; }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .link { color: #8B5CF6; text-decoration: none; }
+        .link:hover { text-decoration: underline; }
+      `}</style>
+
+      {/* Background ambiance */}
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', top: '40%', right: '20%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '24px', fontWeight: '700', color: '#fff', boxShadow: '0 8px 32px rgba(139,92,246,0.3)' }}>L</div>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#F0F0F5', letterSpacing: '-0.5px' }}>Loyal<span style={{ color: '#8B5CF6' }}>Pass</span></h1>
+          <p style={{ color: '#6B7280', fontSize: '13px', marginTop: '6px' }}>Créez votre espace commerçant</p>
         </div>
 
-        <form onSubmit={handleRegister} className="flex flex-col gap-4">
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">Nom du commerce</label>
-            <input
-              type="text"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Ex : Le Bistrot du Coin"
-              required
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-400"
-            />
-          </div>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '24px', padding: '2rem', backdropFilter: 'blur(12px)' }}>
+          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div>
+              <label style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '8px', display: 'block', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Nom du commerce</label>
+              <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Ex : Le Bistrot du Coin" required className="input-field" />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '8px', display: 'block', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@commerce.fr" required className="input-field" />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '8px', display: 'block', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Mot de passe</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="input-field" />
+            </div>
 
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@commerce.fr"
-              required
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-400"
-            />
-          </div>
+            {error && (
+              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#F87171', textAlign: 'center' }}>
+                {error}
+              </div>
+            )}
 
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">Mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              minLength={6}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-400"
-            />
-          </div>
+            <button type="submit" disabled={loading} className="btn-submit" style={{ marginTop: '0.25rem' }}>
+              {loading ? 'Création...' : 'Créer mon compte →'}
+            </button>
+          </form>
+        </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-purple-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-purple-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Création...' : 'Créer mon compte'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280', marginTop: '1.5rem' }}>
           Déjà un compte ?{' '}
-          <Link href="/auth/login" className="text-purple-600 hover:underline">
-            Se connecter
-          </Link>
+          <Link href="/auth/login" className="link">Se connecter</Link>
         </p>
       </div>
     </div>
