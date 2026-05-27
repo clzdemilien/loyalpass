@@ -10,6 +10,8 @@ export default function Scanner() {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showFireworks, setShowFireworks] = useState(false)
+  const [rewardText, setRewardText] = useState('')
   const [pointsToAdd, setPointsToAdd] = useState(1)
   const [loyaltyCard, setLoyaltyCard] = useState(null)
   const [cameraOpen, setCameraOpen] = useState(false)
@@ -64,10 +66,7 @@ export default function Scanner() {
 
   const stopCamera = async () => {
     if (html5QrRef.current) {
-      try {
-        await html5QrRef.current.stop()
-        html5QrRef.current = null
-      } catch (e) {}
+      try { await html5QrRef.current.stop(); html5QrRef.current = null } catch (e) {}
     }
     setCameraOpen(false)
   }
@@ -108,9 +107,10 @@ export default function Scanner() {
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       })
       await supabase.from('customers').update({ loyalty_points: 0 }).eq('id', customer.id)
-      setMessage(`🎉 Récompense débloquée ! ${loyaltyCard.reward}`)
-      setMessageType('reward')
+      setRewardText(loyaltyCard.reward)
+      setShowFireworks(true)
       setCustomer({ ...customer, loyalty_points: 0, visits: newVisits })
+      setTimeout(() => setShowFireworks(false), 5000)
     } else {
       setMessage(`✓ +${pointsToAdd} point${pointsToAdd > 1 ? 's' : ''} ajouté${pointsToAdd > 1 ? 's' : ''} à ${customer.first_name}`)
       setMessageType('success')
@@ -123,6 +123,17 @@ export default function Scanner() {
 
   const pct = loyaltyCard && customer ? Math.min((customer.loyalty_points / loyaltyCard.points_required) * 100, 100) : 0
 
+  const particles = Array.from({ length: 60 }, (_, i) => ({
+    color: ['#8B5CF6','#06B6D4','#F59E0B','#EC4899','#10B981','#fff','#F87171','#A78BFA'][i % 8],
+    x: `${(Math.random() - 0.5) * 600}px`,
+    y: `${(Math.random() - 0.5) * 600}px`,
+    delay: `${Math.random() * 1}s`,
+    duration: `${0.8 + Math.random() * 1}s`,
+    left: `${20 + Math.random() * 60}%`,
+    top: `${20 + Math.random() * 60}%`,
+    size: `${4 + Math.random() * 8}px`,
+  }))
+
   return (
     <div style={{ minHeight: '100vh', background: '#0A0A0F', color: '#F0F0F5', fontFamily: "'Inter', -apple-system, sans-serif" }}>
       <style>{`
@@ -134,9 +145,9 @@ export default function Scanner() {
         .btn-search { background: linear-gradient(135deg, #8B5CF6, #6D28D9); border: none; border-radius: 14px; padding: 14px 20px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s; white-space: nowrap; }
         .btn-search:hover { opacity: 0.85; }
         .btn-search:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-camera { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3); border-radius: 14px; padding: 14px 20px; color: #06B6D4; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+        .btn-camera { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3); border-radius: 14px; padding: 14px 20px; color: #06B6D4; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-bottom: 1rem; }
         .btn-camera:hover { background: rgba(6,182,212,0.2); }
-        .btn-stop { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: 14px; padding: 14px 20px; color: #F87171; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .btn-stop { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: 14px; padding: 14px 20px; color: #F87171; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; width: 100%; margin-bottom: 1rem; }
         .btn-stop:hover { background: rgba(239,68,68,0.2); }
         .btn-add { width: 100%; background: linear-gradient(135deg, #8B5CF6, #6D28D9); border: none; border-radius: 14px; padding: 14px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s, transform 0.2s; }
         .btn-add:hover { opacity: 0.85; transform: translateY(-1px); }
@@ -144,9 +155,38 @@ export default function Scanner() {
         .pts-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: #F0F0F5; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; font-family: inherit; }
         .pts-btn:hover { background: rgba(255,255,255,0.12); }
         #qr-reader { width: 100%; border-radius: 16px; overflow: hidden; }
-        #qr-reader video { border-radius: 16px; }
+        #qr-reader video { border-radius: 16px; width: 100% !important; }
         #qr-reader img { display: none !important; }
+        @keyframes particle-fly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        .particle { position: absolute; border-radius: 50%; animation: particle-fly var(--dur) ease-out var(--delay) forwards; }
+        @keyframes reward-pop { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+        .reward-card { animation: reward-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+        @keyframes shine { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        .shine-text { background: linear-gradient(90deg, #8B5CF6, #06B6D4, #F59E0B, #EC4899, #8B5CF6); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 3s linear infinite; }
       `}</style>
+
+      {/* Feux d'artifice */}
+      {showFireworks && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setShowFireworks(false)}>
+          {particles.map((p, i) => (
+            <div key={i} className="particle" style={{
+              width: p.size, height: p.size, background: p.color,
+              left: p.left, top: p.top,
+              '--tx': p.x, '--ty': p.y,
+              '--dur': p.duration, '--delay': p.delay,
+            }} />
+          ))}
+          <div className="reward-card" style={{ background: 'rgba(10,10,15,0.95)', border: '1px solid rgba(139,92,246,0.5)', borderRadius: '28px', padding: '3rem 3.5rem', textAlign: 'center', zIndex: 1000, maxWidth: '380px', boxShadow: '0 0 80px rgba(139,92,246,0.3)' }}>
+            <div style={{ fontSize: '56px', marginBottom: '1rem' }}>🎉</div>
+            <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }} className="shine-text">Récompense débloquée !</div>
+            <div style={{ fontSize: '18px', color: '#A78BFA', fontWeight: '600', marginBottom: '1.25rem' }}>{rewardText}</div>
+            <div style={{ fontSize: '14px', color: '#6B7280', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              Merci pour votre fidélité, c'est un plaisir de vous avoir parmi nos clients ! ✨
+            </div>
+            <div style={{ fontSize: '12px', color: '#4B5563' }}>Appuyez pour fermer</div>
+          </div>
+        </div>
+      )}
 
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-15%', right: '-10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
@@ -165,31 +205,27 @@ export default function Scanner() {
       </nav>
 
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
-
         <div style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px', marginBottom: '6px' }}>Scanner un client</h1>
           <p style={{ color: '#6B7280', fontSize: '13px' }}>Utilisez la caméra ou entrez le code manuellement</p>
         </div>
 
-        {/* Bouton caméra + input */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '1.5rem', marginBottom: '1rem' }}>
           <label style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '10px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500' }}>Scanner le QR code</label>
 
-          {/* Bouton caméra principal */}
-          <button onClick={cameraOpen ? stopCamera : startCamera} className={cameraOpen ? 'btn-stop' : 'btn-camera'} style={{ width: '100%', marginBottom: '1rem', justifyContent: 'center' }}>
+          <button onClick={cameraOpen ? stopCamera : startCamera} className={cameraOpen ? 'btn-stop' : 'btn-camera'}>
             {cameraOpen ? '⏹ Fermer la caméra' : '📷 Ouvrir la caméra'}
           </button>
 
-          {/* Viewfinder */}
           {cameraOpen && (
             <div style={{ marginBottom: '1rem', background: '#000', borderRadius: '16px', overflow: 'hidden', position: 'relative' }}>
               <div id="qr-reader" ref={scannerRef} />
               <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: '200px', height: '200px', border: '2px solid rgba(6,182,212,0.8)', borderRadius: '16px', boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, width: '20px', height: '20px', borderTop: '3px solid #06B6D4', borderLeft: '3px solid #06B6D4', borderRadius: '4px 0 0 0' }} />
-                  <div style={{ position: 'absolute', top: 0, right: 0, width: '20px', height: '20px', borderTop: '3px solid #06B6D4', borderRight: '3px solid #06B6D4', borderRadius: '0 4px 0 0' }} />
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, width: '20px', height: '20px', borderBottom: '3px solid #06B6D4', borderLeft: '3px solid #06B6D4', borderRadius: '0 0 0 4px' }} />
-                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: '20px', height: '20px', borderBottom: '3px solid #06B6D4', borderRight: '3px solid #06B6D4', borderRadius: '0 0 4px 0' }} />
+                <div style={{ width: '200px', height: '200px', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '24px', borderTop: '3px solid #06B6D4', borderLeft: '3px solid #06B6D4', borderRadius: '4px 0 0 0' }} />
+                  <div style={{ position: 'absolute', top: 0, right: 0, width: '24px', height: '24px', borderTop: '3px solid #06B6D4', borderRight: '3px solid #06B6D4', borderRadius: '0 4px 0 0' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, width: '24px', height: '24px', borderBottom: '3px solid #06B6D4', borderLeft: '3px solid #06B6D4', borderRadius: '0 0 0 4px' }} />
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px', borderBottom: '3px solid #06B6D4', borderRight: '3px solid #06B6D4', borderRadius: '0 0 4px 0' }} />
                 </div>
               </div>
             </div>
@@ -208,22 +244,13 @@ export default function Scanner() {
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              ref={inputRef}
-              type="text"
-              value={scannedCode}
-              onChange={(e) => setScannedCode(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && searchCustomer()}
-              placeholder="Collez le code ici..."
-              className="input-scan"
-            />
+            <input ref={inputRef} type="text" value={scannedCode} onChange={(e) => setScannedCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchCustomer()} placeholder="Collez le code ici..." className="input-scan" />
             <button onClick={searchCustomer} disabled={loading || !scannedCode} className="btn-search">
               {loading ? '...' : 'Rechercher'}
             </button>
           </div>
         </div>
 
-        {/* Fiche client */}
         {customer && (
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '1.75rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -270,9 +297,9 @@ export default function Scanner() {
         {message && (
           <div style={{
             borderRadius: '16px', padding: '1rem 1.25rem', fontSize: '14px', fontWeight: '500', textAlign: 'center',
-            background: messageType === 'reward' ? 'rgba(245,158,11,0.1)' : messageType === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
-            border: `1px solid ${messageType === 'reward' ? 'rgba(245,158,11,0.3)' : messageType === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
-            color: messageType === 'reward' ? '#F59E0B' : messageType === 'error' ? '#F87171' : '#10B981'
+            background: messageType === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+            border: `1px solid ${messageType === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
+            color: messageType === 'error' ? '#F87171' : '#10B981'
           }}>
             {message}
           </div>
