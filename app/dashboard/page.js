@@ -29,43 +29,23 @@ export default function Dashboard() {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-      // Total clients
       const { count: totalCustomers } = await supabase
-        .from('customers').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id)
-
-      // Scans ce mois
+        .from('customers').select('*', { count: 'exact', head: true }).eq('business_id', biz.id)
       const { count: scansMonth } = await supabase
         .from('transactions').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id)
-        .gte('created_at', startOfMonth)
-
-      // Récompenses total
+        .eq('business_id', biz.id).gte('created_at', startOfMonth)
       const { count: rewardsTotal } = await supabase
-        .from('rewards').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id)
-
-      // Nouveaux clients ce mois
+        .from('rewards').select('*', { count: 'exact', head: true }).eq('business_id', biz.id)
       const { count: newMonth } = await supabase
         .from('customers').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id)
-        .gte('created_at', startOfMonth)
-
-      // Clients actifs (visite dans les 30 derniers jours)
+        .eq('business_id', biz.id).gte('created_at', startOfMonth)
       const { count: activeCount } = await supabase
         .from('customers').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id)
-        .gte('last_visit', thirtyDaysAgo)
-
-      // Taux de retour
+        .eq('business_id', biz.id).gte('last_visit', thirtyDaysAgo)
       const returnRate = totalCustomers > 0 ? Math.round((activeCount / totalCustomers) * 100) : 0
-
-      // Meilleur client
       const { data: topClients } = await supabase
         .from('customers').select('first_name, last_name, visits, loyalty_points')
-        .eq('business_id', biz.id)
-        .order('visits', { ascending: false })
-        .limit(1)
+        .eq('business_id', biz.id).order('visits', { ascending: false }).limit(1)
 
       setStats({
         customers: totalCustomers || 0,
@@ -105,10 +85,8 @@ export default function Dashboard() {
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
         .fade-up { animation: fadeUp 0.5s ease forwards; }
-        @keyframes countUp { from { opacity:0; } to { opacity:1; } }
       `}</style>
 
-      {/* Background */}
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
         <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(6,182,212,0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
@@ -128,7 +106,6 @@ export default function Dashboard() {
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
 
-        {/* Header */}
         <div style={{ marginBottom: '2.5rem' }} className="fade-up">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
@@ -141,7 +118,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats principales */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
           {[
             { label: 'Total clients', value: stats.customers, icon: '👥', color: '#8B5CF6', sub: `+${stats.newThisMonth} ce mois` },
@@ -160,10 +136,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Stats secondaires */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-
-          {/* Meilleur client */}
           <div className="stat-card fade-up" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: '0.32s' }}>
             <div style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500', marginBottom: '1rem' }}>⭐ Meilleur client</div>
             {stats.topCustomer ? (
@@ -181,7 +154,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Activité du mois */}
           <div className="stat-card fade-up" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: '0.4s' }}>
             <div style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500', marginBottom: '1rem' }}>📅 Ce mois-ci</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -203,12 +175,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Actions rapides */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
           {[
             { label: 'Mes clients', desc: 'Gérez votre liste', icon: '👥', href: '/customers', color: '#8B5CF6' },
             { label: 'Carte fidélité', desc: 'Personnalisez votre carte', icon: '🎴', href: '/cards', color: '#06B6D4' },
             { label: 'Scanner', desc: 'Ajoutez des points', icon: '📷', href: '/scanner', color: '#10B981' },
+            { label: 'Mon profil', desc: 'Gérez vos informations', icon: '⚙️', href: '/profile', color: '#F59E0B' },
           ].map((item, i) => (
             <div key={item.label} className="action-card fade-up" onClick={() => router.push(item.href)}
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: `${0.48 + i * 0.08}s` }}>
