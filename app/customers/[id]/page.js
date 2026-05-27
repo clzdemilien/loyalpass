@@ -91,7 +91,7 @@ export default function CustomerDetail({ params }) {
     readOnly
     value={customer?.qr_code || ''}
     onFocus={(e) => e.target.select()}
-    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-600 cursor-pointer"
+    className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 cursor-pointer"
   />
 </div>
         </div>
