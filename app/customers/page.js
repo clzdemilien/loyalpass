@@ -181,17 +181,9 @@ export default function CustomerDetail({ params }) {
             <QRCodeCanvas value={customer?.qr_code || ''} size={160} level="H" />
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="text"
-              readOnly
-              value={customer?.qr_code || ''}
-              onFocus={(e) => e.target.select()}
-              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '10px 14px', color: '#9CA3AF', fontSize: '11px', fontFamily: 'monospace', outline: 'none', textAlign: 'center' }}
-            />
-          </div>
-
-          <button
+          <div style={{ marginBottom: '1rem', width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '10px 14px', color: '#9CA3AF', fontSize: '11px', fontFamily: 'monospace', textAlign: 'center', wordBreak: 'break-all', cursor: 'text', userSelect: 'all' }}>
+  {customer?.qr_code || ''}
+</div>
             onClick={copyCode}
             className="btn-copy"
             style={{ background: copied ? 'rgba(16,185,129,0.12)' : 'rgba(139,92,246,0.12)', border: `1px solid ${copied ? 'rgba(16,185,129,0.3)' : 'rgba(139,92,246,0.3)'}`, color: copied ? '#10B981' : '#A78BFA' }}
