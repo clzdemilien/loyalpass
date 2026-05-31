@@ -6,12 +6,8 @@ import { useRouter } from 'next/navigation'
 export default function Dashboard() {
   const [business, setBusiness] = useState(null)
   const [stats, setStats] = useState({
-    customers: 0,
-    scansThisMonth: 0,
-    rewardsTotal: 0,
-    returnRate: 0,
-    newThisMonth: 0,
-    topCustomer: null,
+    customers: 0, scansThisMonth: 0, rewardsTotal: 0,
+    returnRate: 0, newThisMonth: 0, topCustomer: null,
   })
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -20,41 +16,19 @@ export default function Dashboard() {
     const getData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
-
-      const { data: biz } = await supabase
-        .from('businesses').select('*').eq('user_id', user.id).single()
+      const { data: biz } = await supabase.from('businesses').select('*').eq('user_id', user.id).single()
       setBusiness(biz)
-
       const now = new Date()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-
-      const { count: totalCustomers } = await supabase
-        .from('customers').select('*', { count: 'exact', head: true }).eq('business_id', biz.id)
-      const { count: scansMonth } = await supabase
-        .from('transactions').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id).gte('created_at', startOfMonth)
-      const { count: rewardsTotal } = await supabase
-        .from('rewards').select('*', { count: 'exact', head: true }).eq('business_id', biz.id)
-      const { count: newMonth } = await supabase
-        .from('customers').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id).gte('created_at', startOfMonth)
-      const { count: activeCount } = await supabase
-        .from('customers').select('*', { count: 'exact', head: true })
-        .eq('business_id', biz.id).gte('last_visit', thirtyDaysAgo)
+      const { count: totalCustomers } = await supabase.from('customers').select('*', { count: 'exact', head: true }).eq('business_id', biz.id)
+      const { count: scansMonth } = await supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('business_id', biz.id).gte('created_at', startOfMonth)
+      const { count: rewardsTotal } = await supabase.from('rewards').select('*', { count: 'exact', head: true }).eq('business_id', biz.id)
+      const { count: newMonth } = await supabase.from('customers').select('*', { count: 'exact', head: true }).eq('business_id', biz.id).gte('created_at', startOfMonth)
+      const { count: activeCount } = await supabase.from('customers').select('*', { count: 'exact', head: true }).eq('business_id', biz.id).gte('last_visit', thirtyDaysAgo)
       const returnRate = totalCustomers > 0 ? Math.round((activeCount / totalCustomers) * 100) : 0
-      const { data: topClients } = await supabase
-        .from('customers').select('first_name, last_name, visits, loyalty_points')
-        .eq('business_id', biz.id).order('visits', { ascending: false }).limit(1)
-
-      setStats({
-        customers: totalCustomers || 0,
-        scansThisMonth: scansMonth || 0,
-        rewardsTotal: rewardsTotal || 0,
-        returnRate,
-        newThisMonth: newMonth || 0,
-        topCustomer: topClients?.[0] || null,
-      })
+      const { data: topClients } = await supabase.from('customers').select('first_name, last_name, visits, loyalty_points').eq('business_id', biz.id).order('visits', { ascending: false }).limit(1)
+      setStats({ customers: totalCustomers || 0, scansThisMonth: scansMonth || 0, rewardsTotal: rewardsTotal || 0, returnRate, newThisMonth: newMonth || 0, topCustomer: topClients?.[0] || null })
       setLoading(false)
     }
     getData()
@@ -67,24 +41,38 @@ export default function Dashboard() {
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#6B7280', fontSize: '14px' }}>Chargement...</div>
+      <div style={{ width: '36px', height: '36px', border: '3px solid rgba(139,92,246,0.2)', borderTopColor: '#8B5CF6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0A0A0F', color: '#F0F0F5', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#0A0A0F', color: '#F0F0F5', fontFamily: "'Inter', sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .nav-link:hover { color: #F0F0F5 !important; }
-        .stat-card { transition: all 0.2s ease; }
-        .stat-card:hover { border-color: rgba(139,92,246,0.3) !important; transform: translateY(-2px); }
-        .action-card { transition: all 0.2s ease; cursor: pointer; }
-        .action-card:hover { border-color: rgba(139,92,246,0.5) !important; background: rgba(139,92,246,0.08) !important; transform: translateY(-2px); }
-        .btn-primary { transition: all 0.2s ease; }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;} }
+        @keyframes spin { to{transform:rotate(360deg)} }
         .fade-up { animation: fadeUp 0.5s ease forwards; }
+        .stat-card { transition: all 0.2s; }
+        .stat-card:hover { border-color: rgba(139,92,246,0.3) !important; transform: translateY(-2px); }
+        .action-card { transition: all 0.2s; cursor: pointer; }
+        .action-card:hover { border-color: rgba(139,92,246,0.4) !important; background: rgba(139,92,246,0.06) !important; transform: translateY(-2px); }
+        .scan-btn { transition: all 0.2s; }
+        .scan-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(139,92,246,0.4); }
+        .scan-btn:active { transform: scale(0.97); }
+
+        /* MOBILE */
+        @media (max-width: 640px) {
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .secondary-grid { grid-template-columns: 1fr !important; }
+          .actions-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .header-row { flex-direction: column !important; align-items: flex-start !important; gap: 1rem !important; }
+          .nav-inner { padding: 0 1rem !important; }
+          .main-pad { padding: 1.5rem 1rem !important; }
+          .scan-btn-wrap { width: 100% !important; }
+          .scan-btn { width: 100% !important; justify-content: center !important; }
+        }
       `}</style>
 
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
@@ -93,100 +81,101 @@ export default function Dashboard() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.015) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
 
-      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 2rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(10,10,15,0.8)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700', color: '#fff' }}>L</div>
-          <span style={{ fontWeight: '600', fontSize: '15px' }}>Loyal<span style={{ color: '#8B5CF6' }}>Pass</span></span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <span style={{ fontSize: '13px', color: '#6B7280' }}>{business?.name}</span>
-          <button onClick={handleLogout} className="nav-link" style={{ fontSize: '13px', color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>Déconnexion</button>
+      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', height: '60px', display: 'flex', alignItems: 'center', background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div className="nav-inner" style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '30px', height: '30px', background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '800', color: '#fff', fontFamily: 'Space Grotesk, sans-serif' }}>L</div>
+            <span style={{ fontWeight: '700', fontSize: '16px', fontFamily: 'Space Grotesk, sans-serif' }}>Loyal<span style={{ color: '#8B5CF6' }}>Pass</span></span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '12px', color: '#6B7280', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{business?.name}</span>
+            <button onClick={handleLogout} style={{ fontSize: '12px', color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>↩</button>
+          </div>
         </div>
       </nav>
 
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
+      <div className="main-pad" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 1 }}>
 
-        <div style={{ marginBottom: '2.5rem' }} className="fade-up">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h1 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '4px', letterSpacing: '-0.5px' }}>Tableau de bord</h1>
-              <p style={{ color: '#6B7280', fontSize: '13px' }}>{business?.name} · {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-            </div>
-            <button className="btn-primary" onClick={() => router.push('/scanner')} style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', border: 'none', borderRadius: '12px', padding: '10px 20px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              📷 Scanner
+        <div className="header-row fade-up" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+          <div>
+            <h1 style={{ fontSize: 'clamp(20px, 5vw, 26px)', fontWeight: '700', letterSpacing: '-0.5px', fontFamily: 'Space Grotesk, sans-serif' }}>Bonjour 👋</h1>
+            <p style={{ color: '#6B7280', fontSize: '13px', marginTop: '3px' }}>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          </div>
+          <div className="scan-btn-wrap">
+            <button className="scan-btn" onClick={() => router.push('/scanner')} style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', border: 'none', borderRadius: '14px', padding: '11px 20px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'inherit' }}>
+              📷 Scanner un client
             </button>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+        {/* Stats */}
+        <div className="stats-grid fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '0.75rem', animationDelay: '0.1s' }}>
           {[
-            { label: 'Total clients', value: stats.customers, icon: '👥', color: '#8B5CF6', sub: `+${stats.newThisMonth} ce mois` },
-            { label: 'Scans ce mois', value: stats.scansThisMonth, icon: '⚡', color: '#06B6D4', sub: 'points ajoutés' },
-            { label: 'Récompenses', value: stats.rewardsTotal, icon: '🎁', color: '#10B981', sub: 'offertes au total' },
-            { label: 'Taux de retour', value: `${stats.returnRate}%`, icon: '🔄', color: '#F59E0B', sub: 'sur 30 jours' },
+            { label: 'Clients', value: stats.customers, icon: '👥', color: '#8B5CF6', sub: `+${stats.newThisMonth}` },
+            { label: 'Scans', value: stats.scansThisMonth, icon: '⚡', color: '#06B6D4', sub: 'ce mois' },
+            { label: 'Récompenses', value: stats.rewardsTotal, icon: '🎁', color: '#10B981', sub: 'total' },
+            { label: 'Retour', value: `${stats.returnRate}%`, icon: '🔄', color: '#F59E0B', sub: '30 jours' },
           ].map((stat, i) => (
-            <div key={stat.label} className="stat-card fade-up" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: `${i * 0.08}s` }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500' }}>{stat.label}</span>
-                <span style={{ fontSize: '18px' }}>{stat.icon}</span>
+            <div key={stat.label} className="stat-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '10px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500' }}>{stat.label}</span>
+                <span style={{ fontSize: '16px' }}>{stat.icon}</span>
               </div>
-              <div style={{ fontSize: '30px', fontWeight: '700', color: stat.color, marginBottom: '4px', letterSpacing: '-0.5px' }}>{stat.value}</div>
-              <div style={{ fontSize: '11px', color: '#4B5563' }}>{stat.sub}</div>
+              <div style={{ fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: '700', color: stat.color, letterSpacing: '-0.5px' }}>{stat.value}</div>
+              <div style={{ fontSize: '10px', color: '#4B5563', marginTop: '2px' }}>{stat.sub}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-          <div className="stat-card fade-up" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: '0.32s' }}>
-            <div style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500', marginBottom: '1rem' }}>⭐ Meilleur client</div>
+        {/* Meilleur client + mois */}
+        <div className="secondary-grid fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem', animationDelay: '0.2s' }}>
+          <div className="stat-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1rem' }}>
+            <div style={{ fontSize: '10px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500', marginBottom: '0.75rem' }}>⭐ Meilleur client</div>
             {stats.topCustomer ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(109,40,217,0.2))', border: '2px solid rgba(139,92,246,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '700', color: '#A78BFA', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(139,92,246,0.2)', border: '2px solid rgba(139,92,246,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', color: '#A78BFA', flexShrink: 0 }}>
                   {stats.topCustomer.first_name?.[0]}{stats.topCustomer.last_name?.[0]}
                 </div>
                 <div>
-                  <p style={{ fontWeight: '600', fontSize: '15px', marginBottom: '3px' }}>{stats.topCustomer.first_name} {stats.topCustomer.last_name}</p>
-                  <p style={{ fontSize: '12px', color: '#6B7280' }}>{stats.topCustomer.visits} visites · {stats.topCustomer.loyalty_points} pts</p>
+                  <p style={{ fontWeight: '600', fontSize: '13px' }}>{stats.topCustomer.first_name} {stats.topCustomer.last_name}</p>
+                  <p style={{ fontSize: '11px', color: '#6B7280' }}>{stats.topCustomer.visits} visites</p>
                 </div>
               </div>
-            ) : (
-              <p style={{ color: '#4B5563', fontSize: '13px' }}>Aucun client encore</p>
-            )}
+            ) : <p style={{ color: '#4B5563', fontSize: '12px' }}>Aucun client</p>}
           </div>
 
-          <div className="stat-card fade-up" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: '0.4s' }}>
-            <div style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500', marginBottom: '1rem' }}>📅 Ce mois-ci</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[
-                { label: 'Nouveaux clients', value: stats.newThisMonth, color: '#8B5CF6' },
-                { label: 'Scans effectués', value: stats.scansThisMonth, color: '#06B6D4' },
-              ].map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '13px', color: '#9CA3AF' }}>{item.label}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '80px', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: item.value > 0 ? '100%' : '0%', background: item.color, borderRadius: '100px', transition: 'width 1s ease' }} />
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: item.color, minWidth: '24px', textAlign: 'right' }}>{item.value}</span>
+          <div className="stat-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1rem' }}>
+            <div style={{ fontSize: '10px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '500', marginBottom: '0.75rem' }}>📅 Ce mois</div>
+            {[
+              { label: 'Nouveaux', value: stats.newThisMonth, color: '#8B5CF6' },
+              { label: 'Scans', value: stats.scansThisMonth, color: '#06B6D4' },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{item.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '60px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px' }}>
+                    <div style={{ height: '100%', width: item.value > 0 ? '100%' : '0%', background: item.color, borderRadius: '100px' }} />
                   </div>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: item.color }}>{item.value}</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        {/* Actions */}
+        <div className="actions-grid fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', animationDelay: '0.3s' }}>
           {[
-            { label: 'Mes clients', desc: 'Gérez votre liste', icon: '👥', href: '/customers', color: '#8B5CF6' },
-            { label: 'Carte fidélité', desc: 'Personnalisez votre carte', icon: '🎴', href: '/cards', color: '#06B6D4' },
-            { label: 'Scanner', desc: 'Ajoutez des points', icon: '📷', href: '/scanner', color: '#10B981' },
-            { label: 'Mon profil', desc: 'Gérez vos informations', icon: '⚙️', href: '/profile', color: '#F59E0B' },
-          ].map((item, i) => (
-            <div key={item.label} className="action-card fade-up" onClick={() => router.push(item.href)}
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1.25rem', animationDelay: `${0.48 + i * 0.08}s` }}>
-              <div style={{ width: '36px', height: '36px', background: `${item.color}18`, border: `1px solid ${item.color}33`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', marginBottom: '0.75rem' }}>{item.icon}</div>
-              <p style={{ fontWeight: '600', fontSize: '14px', marginBottom: '4px' }}>{item.label}</p>
-              <p style={{ fontSize: '12px', color: '#6B7280' }}>{item.desc}</p>
+            { label: 'Clients', desc: 'Gérer', icon: '👥', href: '/customers', color: '#8B5CF6' },
+            { label: 'Carte', desc: 'Personnaliser', icon: '🎴', href: '/cards', color: '#06B6D4' },
+            { label: 'Scanner', desc: 'Points', icon: '📷', href: '/scanner', color: '#10B981' },
+            { label: 'Profil', desc: 'Paramètres', icon: '⚙️', href: '/profile', color: '#F59E0B' },
+          ].map(item => (
+            <div key={item.label} className="action-card" onClick={() => router.push(item.href)}
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1rem', textAlign: 'center' }}>
+              <div style={{ width: '40px', height: '40px', background: `${item.color}18`, border: `1px solid ${item.color}33`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', margin: '0 auto 0.6rem' }}>{item.icon}</div>
+              <p style={{ fontWeight: '600', fontSize: '13px', marginBottom: '2px' }}>{item.label}</p>
+              <p style={{ fontSize: '11px', color: '#6B7280' }}>{item.desc}</p>
             </div>
           ))}
         </div>
