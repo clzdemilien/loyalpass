@@ -109,7 +109,7 @@ export default function CustomerDetail({ params }) {
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 12px;
           padding: 12px 16px;
-          color: #9CA3AF;
+          color: #E5E7EB;
           font-size: 11px;
           font-family: monospace;
           text-align: center;
